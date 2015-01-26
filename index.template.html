@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>
+            {{ site_name }}
+        </title>
+        <style>
+            html
+            {
+                background: #444;
+                color: #fff;
+            }
+
+            body
+            {
+                text-align: center;
+                font-size: 50px;
+            }
+
+            button
+            {
+                font-size: inherit;
+                border: .05em solid #888;
+                border-radius: .1em;
+                background: #eee;
+                color: #444;
+                transition-duration: .25s;
+                transition-property: all;
+                margin-bottom: .5em;
+            }
+
+            button[disabled]
+            {
+                color: #888;
+                background: #bbb;
+            }
+
+            .triggered
+            {
+                box-shadow: 0 0 .5em #ffc;
+                color: #fff;
+                background: #888;
+                text-shadow: 0 0 .01em #ffc;
+            }
+
+            a,
+            a:link,
+            a:hover,
+            a:active,
+            a:visited
+            {
+                display: block;
+                font-size: .5em;
+                color: #88f;
+                text-decoration: none;
+            }
+        </style>
+    </head>
+    <body>
+        <p>
+        <button disabled="disabled">{{ site_name }}</button>
+            <a></a>
+        </p>
+        <script>
+            // Do all the funky stuff when the document is ready.
+            document.addEventListener('readystatechange', function(e) {
+                if (document.readyState == 'complete') {
+                    // Locate the trigger, info link and create a player.
+                    var trigger = document.getElementsByTagName('button')[0];
+                    var info = document.getElementsByTagName('a')[0];
+                    var player = new Audio();
+                   
+                    // Add some event listeners to the player.
+                    player.addEventListener('playing', function(e) {
+                        trigger.classList.add('triggered');
+                    });
+
+                    player.addEventListener('ended', function(e) {
+                        trigger.classList.remove('triggered');
+                    });
+
+                    // Load the library.
+                    var req = new XMLHttpRequest();
+                    req.onload = function() {
+                        // Parse library data.
+                        var library = JSON.parse(this.response);
+
+                        // Make the trigger clickable.
+                        trigger.addEventListener('click', function(e) {
+                            var item = library[Math.floor(Math.random() * library.length)];
+                            console.log(item);
+                            player.src = '/audio/' + item.file;
+                            player.play(); 
+                            info.text = '\u2013 ' + item.person + ', ' + item.program + ', ' + item.channel;
+                            info.href = item.url;
+                        });
+
+                        // Remove the disabled state of the trigger.
+                        try {
+                            trigger.attributes.removeNamedItem('disabled');
+                        }
+                        catch (NotFoundError) {}
+                    }
+                    req.open('get', '/library.json', true);
+                    req.send();
+                    
+                }
+            });
+        </script>
+    </body>
+</html>
+
